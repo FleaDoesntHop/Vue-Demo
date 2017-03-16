@@ -7,12 +7,13 @@
       <div class="tab-item"><a v-link="{path: '/seller'}">商家</a></div>
     </div>
     <!--路由外链-->
-    <router-view :seller="seller"></router-view>
+    <router-view :seller="seller" keep-alive></router-view>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
     import header from 'components/header/header.vue';
+    import {urlParse} from 'common/js/util';
 
     // 路由读取数据成功返回状态码默认为0
     const ERR_OK = 0;
@@ -20,15 +21,21 @@
     export default {
       data() {
         return {
-          seller: {}
+          seller: {
+              id: (() => {
+                  let queryParam = urlParse();
+                  return queryParam.id;
+              })()
+          }
         };
       },
       created(){
         // vue-resource插件定义的$http方法
-        this.$http.get('/api/seller').then((response) => {
+        this.$http.get('/api/seller?id=' + this.seller.id).then((response) => {
           response = response.body;
           if (response.errno === ERR_OK) {
-            this.seller = response.data;
+//            this.seller = response.data;
+            this.seller = Object.assign({}, this.seller, response.data);
           }
         }, (response) => {
           console.log('status code: ' + response.status + ', error message: ' + response.statusText);
@@ -41,7 +48,7 @@
 </script>
 
 <style lang="stylus" rel="stylesheet/stylus">
-    @import './common/stylus/mixin.styl'
+    @import './common/stylus/mixin.styl';
 
     .tab
       display: flex
